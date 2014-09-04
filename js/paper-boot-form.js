@@ -486,7 +486,7 @@ var Paperboot =
 		* Toggle message visibility
 		* Disable form submission when errors given.
 		*/
-		jQuery('#post').on('submit', function(e) {
+		jQuery('body.post-type-paperboot #post-paperboot').on('submit', function(e) {
 			if(!jQuery('#paperboot_post_type').val()) {
 				e.preventDefault();
 				jQuery('#paperboot_post_type').prev('label.alert-danger').addClass('active');
