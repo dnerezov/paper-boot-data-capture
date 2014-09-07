@@ -54,16 +54,23 @@ if (!class_exists('PB_Widget_Ajax'))
 			}
 			
 			$widget_class    = 'Widget_Paperboot_Form_' . $this->core_node;
-			$widget_instance = new $widget_class();
-			$widget_settings = end(array_values($widget_instance->get_settings()));
 			
-			if(!empty($widget_settings['submit_event']) && PB_Validator::status()) {
-				$response['submit_event'] = html_entity_decode($widget_settings['submit_event']);
+			if(class_exists($widget_class, false)) {
+				$widget_instance = new $widget_class();
+				$widget_settings = end(array_values($widget_instance->get_settings()));
+				
+				if(!empty($widget_settings['submit_event']) && PB_Validator::status()) {
+					$response['submit_event'] = html_entity_decode($widget_settings['submit_event']);
+				}
+				
+				return json_encode(array(
+					$this->core_node => $response
+				));
+			} else {
+				return json_encode(array(
+					'paperBoot' => array('errors' => 'This page requires post data')
+				));
 			}
-			
-			return json_encode(array(
-				$this->core_node => $response
-			));
 		}
 	}
 	
