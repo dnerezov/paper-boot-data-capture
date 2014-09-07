@@ -725,36 +725,7 @@ if (!class_exists('Paper_Boot_Form'))
 				padding-bottom: 10px;
 				border-bottom: 1px solid #eee
 			}
-			/*
-			.inlinexX {
-					float:left;
-					display:inline;
-				width: 30%;
-				vertical-align: top;
-			}
-						
-			.menu-settings input[type="text"] {
-				width: 70%
-			}
-			
-			.paperboot_fields .howto {
-				width: 40%
-			}
-			
-			.paperboot_fields .menu-settings dd {
-				width: 60%
-			}
-			
-@media (max-width: 480px) {
-.inlinexX {
-display:block;
-width: 100%
-}
-}*/
 
-			
-
-			
 			.accord-content {
 				padding-left: 5px;
 			}
@@ -830,7 +801,7 @@ width: 100%
 			
 			$widget_class    = 'Widget_Paperboot_Form_' . $post_type;
 			$widget_instance = new $widget_class();
-			$widget_settings = end(array_values($widget_instance->get_settings()));
+			$widget_settings = (array) $widget_instance;
 			
 			unset($columns['date']);
 			
@@ -1128,8 +1099,9 @@ width: 100%
 				$widget_class    = 'Widget_Paperboot_Form_' . $this->mb_ucfirst($post_type);
 				
 				if(class_exists($widget_class, false) && !empty($settings['fields'])) {
-					$widget_settings = (array) new $widget_class();
-					
+					$widget_instance = new $widget_class();
+					$widget_settings = end(array_values($widget_instance->get_settings()));
+
 					// Instanciate validation
 					$validation = PB_Validator::instance();
 					
@@ -1159,12 +1131,12 @@ width: 100%
 							->blank();
 					}
 					
-					// Set post title
-					$post_title_field = null;
-					if (!empty($widget_settings['post_title_field']) && array_key_exists($widget_settings['post_title_field'], $_POST)) {
+					if (!empty($_POST[$widget_settings['post_title_field']])) {
 						$post_title_field = sanitize_text_field($_POST[$widget_settings['post_title_field']]);
+					} else {
+						$post_title_field = $widget_settings['post_title_field'];
 					}
-					
+
 					// Execute when no validation error
 					if ($validation::status() == true) {
 						
