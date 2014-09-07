@@ -52,6 +52,23 @@
 			) ?>
 		</dd>
 	</dl>
+	<dl class="pb-email pb-text pb-textarea censorWords">
+		<dt class="howto">
+			<?php echo PB_Tag::label(array(
+				'value' => __('Censor Words', 'text_domain'),
+				'for'   => 'pb_validation_rule_censorWords_' . $i
+			)) ?>
+		</dt>
+		<dd>
+			<?php echo PB_Tag::checkbox(array(
+				'name'    => 'paperboot_fields['.$i.'][validation_rules][censorWords]', 
+				'id'      => 'pb_validation_rule_censorWords_' . $i,
+				'value'   => 'on',
+				'class'   => 'censorWords',
+				'checked' => isset($field) ? array_key_exists('censorWords', $field['validation_rules']) : null)
+			) ?>
+		</dd>
+	</dl>
 	<dl class="pb-text numeric">
 		<dt class="howto">
 			<?php echo PB_Tag::label(array(

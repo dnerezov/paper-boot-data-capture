@@ -120,6 +120,7 @@ class #Widget_Paperboot_Form# extends WP_Widget
 		'email'		   => 'Invalid email format',
 		'url'          => 'Invalid url',
 		'depth'        => 'Select between min and max',
+		'censorWords'  => 'Sensored words have been detected',
 		'captcha'      => 'You have entered incorrect code'
 	);
 	
@@ -183,6 +184,7 @@ class #Widget_Paperboot_Form# extends WP_Widget
 		$messages['email']        = isset($instance['messages']['email']) ? $instance['messages']['email'] : $this->messages['email'];
 		$messages['url']          = isset($instance['messages']['url']) ? $instance['messages']['url'] : $this->messages['url'];
 		$messages['depth']        = isset($instance['messages']['depth']) ? $instance['messages']['depth'] : $this->messages['depth'];
+		$messages['censorWords']    = isset($instance['messages']['censorWords']) ? $instance['messages']['censorWords'] : $this->messages['censorWords'];
 		$messages['captcha']      = isset($instance['messages']['captcha']) ? $instance['messages']['captcha'] : $this->messages['captcha'];
 		
 		extract($instance) ?>
@@ -674,6 +676,26 @@ class #Widget_Paperboot_Form# extends WP_Widget
 					'name'  => $this->get_field_name('messages') . '[alpha]',
 					'id'    => $this->get_field_id('messages-alpha'),
 					'value' => $messages['alpha'],
+					'class' => 'widefat'
+				)) ?>
+			</p>
+			<p>
+				<?php echo PB_Tag::label(array(
+					'for'   => $this->get_field_id('messages-censorWords'),
+					'value' => __('Validation Censor Words', 'text_domain')
+				)) ?>
+				<?php 
+				if (PB_Validator::getErrors('messages-censorWords')) : ?>
+					<?php echo PB_Tag::label(array(
+						'for'   => $this->get_field_id('messages-censorWords'),
+						'value' => '<strong>ERROR</strong>: ' . PB_Validator::getErrors('messages-censorWords'),
+						'class' => 'pb-widget-form-validation-error'
+					)) ?>
+				<?php endif ?>
+				<?php echo PB_Tag::text(array(
+					'name'  => $this->get_field_name('messages') . '[censorWords]',
+					'id'    => $this->get_field_id('messages-censorWords'),
+					'value' => $messages['censorWords'],
 					'class' => 'widefat'
 				)) ?>
 			</p>

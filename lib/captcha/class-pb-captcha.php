@@ -21,7 +21,7 @@ final class captcha
      *
      * @var     integer
      */
-    private $width = 165;
+    private $width = 200;
 
     /**
      * Image canvas height
@@ -29,6 +29,13 @@ final class captcha
      * @var     integer
      */
     private $height = 50;
+	
+	 /**
+     * Image text font size
+     *
+     * @var     integer
+     */
+	private $fontSize = 30;
 
     /**
      * Image canvas rgb colors
@@ -42,7 +49,7 @@ final class captcha
      *
      * @var     string
      */
-    public $code;
+    public $code = 'abcd';
 
     /**
      * Generated Image. Gd object handler
@@ -83,33 +90,42 @@ final class captcha
 	* Create an image using provided resources.
 	*
 	*/
-    public function __construct($code)
+    public function __construct()
     {
         $this->image = $this->makeCanvas();
-		$this->code  = $code;
-        
-        $colorBg   = $this->makeCanvasColor();
-        $colorFont = $this->makeFontColor();
-        $font      = $this->getFont();
-
-        imagefilledrectangle($this->image, 0, 0, 399, 99, $colorBg);
-        imagettftext($this->image, 35, 0, 2, 40, $colorFont, $font, $this->code);
     }
 
-    /**
-    * Singelton approach to instanciate class.
+	
+	/**
+    * Set canvas color / background image color.
     *
-    * @return $instance object
+    * @return  captcha instance
     */
-    public static function &load()
+    public function setForegroundText($code)
     {
-        if(!isset(self::$instance))
-        {
-            $c = __CLASS__;
-            self::$instance = new $c();
-        }
+		if(!empty($code)) {
+			$this->code  = $code;
+		}
 
-        return self::$instance;
+        return $this;
+    }
+	
+    /**
+    * Set canvas color / background image color.
+    *
+    * @return  captcha instance
+    */
+    public function setCanvasColor($colorHex)
+    {
+		if(!empty($colorHex)) {
+			if(substr($colorHex, 0, 1) != '#') {
+				$colorHex = '#' . $colorHex;
+			}
+			
+			$this->canvasColor = $colorHex;
+		}
+
+        return $this;
     }
 
     /**
@@ -189,6 +205,28 @@ final class captcha
         return $str;
     }
 	
+	 /**
+     * Make hash.
+     *
+     * @param integer $length number of characters to be used.
+     * @param string $pool characters to be used
+     * @return string
+     */
+    public static function setForegroundTextFromFile($file, $length = 5)
+    {
+		$str = null;
+		
+		if(file_exists(__dir__ . '/' . $file)) {
+			$content = file_get_contents($file);
+			$content = explode(',', $content);
+
+			$str = $content[rand(0, count($content)-1)];
+			$str = substr($str, 0, $length);
+			
+			return $str;
+		}
+    }
+	
 	/**
 	* Convert css hex color value to rgb value
 	*
@@ -221,8 +259,16 @@ final class captcha
 	* @return void
 	*/
     public function create()
-    {
-        header("Content-type: image/png");
+    {        
+		header("Content-type: image/png");
+		
+		$colorBg   = $this->makeCanvasColor();
+        $colorFont = $this->makeFontColor();
+        $font      = $this->getFont();
+
+        imagefilledrectangle($this->image, 0, 0, 399, 99, $colorBg);
+        imagettftext($this->image, $this->fontSize, 0, 2, 40, $colorFont, $font, $this->code);
+        
         imagepng($this->image);
         ImageDestroy($this->image);
     }
@@ -230,8 +276,18 @@ final class captcha
 
 session_start();
 
-$code = captcha::makeHash();
+//$code = captcha::makeHash();
+$code = captcha::setForegroundTextFromFile('words/en_US.txt', 7);
 $_SESSION['captcha'] = $code;
 
-$image = new captcha($code);
-$image->create();
+//die($_SESSION['captcha']);
+
+$canvasColor = null;
+if(!empty($_GET['canvasColor'])) {
+	$canvasColor = $_GET['canvasColor'];
+}
+
+$image = new captcha();
+$image->setForegroundText($code)
+	->setCanvasColor($canvasColor)
+	->create();

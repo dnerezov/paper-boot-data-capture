@@ -1316,9 +1316,9 @@ width: 100%
 		*/
 		private static function captcha()
 		{
-			session_start();
-			
-			if(htmlspecialchars($_POST['captcha']) != $_SESSION['captcha']) {
+			session_start();			
+
+			if(trim($_POST['captcha']) != trim($_SESSION['captcha'])) {
 				return false;
 			} else {
 				return true;

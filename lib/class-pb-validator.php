@@ -156,6 +156,33 @@ if (!class_exists('PB_Validator'))
 		}
 		
 		/*
+		* Set "alpha" validation rule message.
+		* Check whether the characters of field's value is made of alpha characters only.
+		* Enable chaining.
+		*
+		* @param $msg string
+		* @param $allowed array
+		* @return $instance object
+		*/
+		public static function censorWords($msg = 'Sensored word has been detected', $file = 'class-pb-validator/censoredWords.txt')
+		{
+			if(file_exists(__dir__ . '/' . $file)) {
+				$content = file_get_contents($file, true);
+				$words = explode(',', $content);
+
+				foreach($words as $word) {
+					if(strpos(self::$value, trim($word))  !== false) {
+						self::addError($msg);
+						
+						break;
+					}
+				}
+			}
+
+			return self::$instance;
+		}
+		
+		/*
 		* Set "alphaNumeric" validation rule message.
 		* Check whether the characters of field's value is made of alpha-numeric characters only.
 		* Enable chaining.
