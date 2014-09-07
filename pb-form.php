@@ -1228,8 +1228,9 @@ if (!class_exists('Paper_Boot_Form'))
 				$widget_class    = 'Widget_Paperboot_Form_' . $this->mb_ucfirst($post_type);
 				
 				if(class_exists($widget_class, false) && !empty($settings['fields'])) {
-					$widget_settings = new $widget_class();
-					extract(wp_parse_args((array) $widget_settings));
+					$widget_instance = new $widget_class();
+					$widget_settings = end(array_values($widget_instance->get_settings()));
+					extract($widget_settings);
 					
 					ob_start()?> 
 					
@@ -1255,8 +1256,9 @@ if (!class_exists('Paper_Boot_Form'))
 				$widget_class    = 'Widget_Paperboot_Form_' . $post_type;
 				
 				if(class_exists($widget_class, false) && !empty($settings['fields'])) {
-					$widget_settings = new $widget_class();
-					extract(wp_parse_args((array) $widget_settings));
+					$widget_instance = new $widget_class();
+					$widget_settings = end(array_values($widget_instance->get_settings()));
+					extract($widget_settings);
 					
 					$posts = get_posts(array(
 						'post_type'   => $post_type,
