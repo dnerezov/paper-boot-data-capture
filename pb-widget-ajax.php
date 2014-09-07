@@ -22,7 +22,7 @@ if (!class_exists('PB_Widget_Ajax'))
 		*
 		* @param string
 		*/
-		private $core_node = 'Paper_Boot';
+		private $core_node;
 		
 		/*
 		* Instanciate plugin.

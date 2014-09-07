@@ -1,9 +1,5 @@
 <?php 
-//echo '<pre>';
-//print_r($settings);
-//echo '</pre>';
-
-if(!empty($settings['fields']) && isset($show_form)) : ?>
+if(isset($show_form)) : ?>
 <form class="paper-boot-form" action="<?php echo plugins_url('pb-widget-ajax.php', dirname(__FILE__)) ?>" method="post" id="<?php echo $settings['post_type'] ?>" role="form">
 	<?php foreach ($settings['fields'] as $field) : ?>
 		<div class="form-group">
@@ -45,10 +41,12 @@ if(!empty($settings['fields']) && isset($show_form)) : ?>
 			'class' => 'control-label alert alert-danger', 
 			'style' => 'display: none')
 		) ?>
+		
 		<?php echo PB_Tag::img(array(
-			'src' => plugins_url('../inc/cool_php_captcha/captcha.php?=' . rand(2, 9) . '', __FILE__ ),
+			'src' => plugins_url('/../lib/captcha/class-pb-captcha.php', __FILE__ ),
 			'id'  => 'captcha-img')
 		) ?>
+		
 		<div class="input-group">
 			<span class="input-group-btn">
 				<button class="btn btn-default captcha-reload" type="button" title="Reload Word">

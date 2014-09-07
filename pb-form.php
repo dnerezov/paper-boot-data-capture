@@ -477,6 +477,8 @@ if (!class_exists('Paper_Boot_Form'))
 		*/
 		public function __construct(array $posts) 
 		{
+			//$post_type = $this->get_pb_post_type($post->ID);
+
 			$this->set_settings($posts)
 				->add_resources();
 
@@ -497,7 +499,9 @@ if (!class_exists('Paper_Boot_Form'))
 				add_filter('manage_edit-' . $settings['post_type'] . '_columns',          array(&$this, 'admin_add_grid_columns'));
 				add_filter('manage_edit-' . $settings['post_type'] . '_sortable_columns', array(&$this, 'admin_add_grid_columns_sort'));
 			}
-			
+			//echo '<pre>';
+						///print_r($this);
+			//die;
 			add_shortcode('paperboot-form', array(&$this, 'set_shortcode_show_form'));
 			add_shortcode('paperboot-posts', array(&$this, 'set_shortcode_show_posts'));
 			
@@ -1121,113 +1125,116 @@ width: 100%
 
 			if($settings && !empty($_POST)) {
 				// Get widget settings
-				$widget_class    = 'Widget_Paperboot_Form_' . $post_type;
-				$widget_instance = new $widget_class();
-				$widget_settings = end(array_values($widget_instance->get_settings()));
+				$widget_class    = 'Widget_Paperboot_Form_' . $this->mb_ucfirst($post_type);
 				
-				// Instanciate validation
-				$validation = PB_Validator::instance();
-				
-				foreach ($settings['fields'] as $field) {
-					$name = $this->get_pb_field_name($field);
+				if(class_exists($widget_class, false) && !empty($settings['fields'])) {
+					$widget_settings = (array) new $widget_class();
 					
-					if(array_key_exists('validation_rules', $field)) {
-						$validation->set($name, $_POST[$name]);
+					// Instanciate validation
+					$validation = PB_Validator::instance();
+					
+					foreach ($settings['fields'] as $field) {
+						$name = $this->get_pb_field_name($field);
 						
-						foreach ($field['validation_rules'] as $rule_name => $rule_params) {
-							if(!empty($rule_params) && is_array($rule_params)) {
-								// Set validation rule with parameters
-								$validation->$rule_name($widget_settings['messages'][$rule_name], $rule_params);
-							} else {
-								// Set validation rule without parameters
-								$validation->$rule_name($widget_settings['messages'][$rule_name]);
+						if(array_key_exists('validation_rules', $field)) {
+							$validation->set($name, $_POST[$name]);
+							
+							foreach ($field['validation_rules'] as $rule_name => $rule_params) {
+								if(!empty($rule_params) && is_array($rule_params)) {
+									// Set validation rule with parameters
+									$validation->$rule_name($widget_settings['messages'][$rule_name], $rule_params);
+								} else {
+									// Set validation rule without parameters
+									$validation->$rule_name($widget_settings['messages'][$rule_name]);
+								}
 							}
 						}
 					}
-				}
-				
-				// Set and run captcha validation
-				if ($widget_settings['show_captcha'] && array_key_exists('captcha', $_POST)) {
-					$validation->set('captcha', $_POST ? $_POST['captcha'] : null)
-						->custom(self::captcha(), $widget_settings['messages']['captcha'])
-						->blank();
-				}
-				
-				// Set post title
-				$post_title_field = null;
-				if (!empty($widget_settings['post_title_field']) && array_key_exists($widget_settings['post_title_field'], $_POST)) {
-					$post_title_field = sanitize_text_field($_POST[$widget_settings['post_title_field']]);
-				}
-				
-				// Execute when no validation error
-				if ($validation::status() == true) {
 					
-					// Insert post
-					$post_id = wp_insert_post(array(
-						'post_type'    => $settings['post_type'],
-						'post_content' => null, 
-						'post_title'   => $post_title_field, //is_string($_POST[key($_POST)]) ? sanitize_text_field($_POST[key($_POST)]) : null,
-						'post_status'  => 'publish'
-					));
+					// Set and run captcha validation
+
+					if ($widget_settings['show_captcha'] && array_key_exists('captcha', $_POST)) {
+						$validation->set('captcha', $_POST ? $_POST['captcha'] : null)
+							->custom(self::captcha(), $widget_settings['messages']['captcha'])
+							->blank();
+					}
 					
-					// Save meta data
-					foreach ($settings['fields'] as $field) {
-						$name = $this->get_pb_field_name($field);
-						if(array_key_exists($name, $_POST)) {
-							update_post_meta($post_id, '_' . $name, $_POST[$name]);
+					// Set post title
+					$post_title_field = null;
+					if (!empty($widget_settings['post_title_field']) && array_key_exists($widget_settings['post_title_field'], $_POST)) {
+						$post_title_field = sanitize_text_field($_POST[$widget_settings['post_title_field']]);
+					}
+					
+					// Execute when no validation error
+					if ($validation::status() == true) {
+						
+						// Insert post
+						$post_id = wp_insert_post(array(
+							'post_type'    => $settings['post_type'],
+							'post_content' => null, 
+							'post_title'   => $post_title_field, //is_string($_POST[key($_POST)]) ? sanitize_text_field($_POST[key($_POST)]) : null,
+							'post_status'  => 'publish'
+						));
+						
+						// Save meta data
+						foreach ($settings['fields'] as $field) {
+							$name = $this->get_pb_field_name($field);
+							if(array_key_exists($name, $_POST)) {
+								update_post_meta($post_id, '_' . $name, $_POST[$name]);
+							}
 						}
-					}
-					
-					// Get widget options
-					$widget_class     = 'Widget_Paperboot_Form_' . $this->mb_ucfirst($settings['post_type']);
-					$widget_instance  = new $widget_class;
-					$widget_settings  = end(array_values($widget_instance->get_settings()));
-					$email            = $widget_settings['email'];
-					
-					// Prepare notification email
-					$email['notification']['headers'] = implode("\r\n", array(
-												'MIME-Version: 1.0', 
-												'Content-Type: text/html; charset=iso-8859-1',
-												'From: ' . $email['from'],
-												'Reply-To: ' . !empty($email['notification']['reply']) ? $email['notification']['reply'] : $email['from']
-											)
-										);
-										
-					// Prepare response email
-					$email['response']['headers'] = implode("\r\n", array(
-												'MIME-Version: 1.0', 
-												'Content-Type: text/html; charset=iso-8859-1',
-												'From: ' . $email['from'],
-												'Reply-To: ' . !empty($email['response']['reply']) ? $email['response']['reply'] : $email['from']
-											)
-										);
-					
-					// Send notification email
-					if($post_id && isset($email['notification']['send'])) {
-						wp_mail(
-							$email['notification']['to'], 
-							$email['notification']['subject'], 
-							$email['notification']['content'],
-							$email['notification']['headers']
-						);
-					}
-					
-					// Send response email
-					if(isset($email['response']['send']) && !empty($_POST[$email['response']['to']])) {
-						$email_response_to = $_POST[$email['response']['to']];
 						
-						$validation->set($email['response']['to'], $email_response_to)
-							->email($widget_settings['messages']['email']);
+						// Get widget options
+						$widget_class     = 'Widget_Paperboot_Form_' . $this->mb_ucfirst($settings['post_type']);
+						$widget_instance  = new $widget_class;
+						$widget_settings  = end(array_values($widget_instance->get_settings()));
+						$email            = $widget_settings['email'];
 						
-						if($post_id && $validation::status() == true) {
-							$email['response']['to'] = $email_response_to;
-							
+						// Prepare notification email
+						$email['notification']['headers'] = implode("\r\n", array(
+													'MIME-Version: 1.0', 
+													'Content-Type: text/html; charset=iso-8859-1',
+													'From: ' . $email['from'],
+													'Reply-To: ' . !empty($email['notification']['reply']) ? $email['notification']['reply'] : $email['from']
+												)
+											);
+											
+						// Prepare response email
+						$email['response']['headers'] = implode("\r\n", array(
+													'MIME-Version: 1.0', 
+													'Content-Type: text/html; charset=iso-8859-1',
+													'From: ' . $email['from'],
+													'Reply-To: ' . !empty($email['response']['reply']) ? $email['response']['reply'] : $email['from']
+												)
+											);
+						
+						// Send notification email
+						if($post_id && isset($email['notification']['send'])) {
 							wp_mail(
-								$email['response']['to'], 
-								$email['response']['subject'], 
-								$email['response']['content'],
-								$email['response']['headers']
+								$email['notification']['to'], 
+								$email['notification']['subject'], 
+								$email['notification']['content'],
+								$email['notification']['headers']
 							);
+						}
+						
+						// Send response email
+						if(isset($email['response']['send']) && !empty($_POST[$email['response']['to']])) {
+							$email_response_to = $_POST[$email['response']['to']];
+							
+							$validation->set($email['response']['to'], $email_response_to)
+								->email($widget_settings['messages']['email']);
+							
+							if($post_id && $validation::status() == true) {
+								$email['response']['to'] = $email_response_to;
+								
+								wp_mail(
+									$email['response']['to'], 
+									$email['response']['subject'], 
+									$email['response']['content'],
+									$email['response']['headers']
+								);
+							}
 						}
 					}
 				}
@@ -1242,22 +1249,22 @@ width: 100%
 		*/
 		public function set_shortcode_show_form($params)
 		{
-			$post_type = $params['post_type'];
-			$settings  = $this->get_pb_settings($post_type);
-			
-			// Get widget settings
-			$widget_class    = 'Widget_Paperboot_Form_' . $post_type;
-			$widget_instance = new $widget_class();
-			$widget_settings = end(array_values($widget_instance->get_settings()));
-			
-			extract(wp_parse_args((array) $widget_settings));
-			
-			if($display_on == 'shortcode') {
-				ob_start()?> 
+			if(!empty($params['post_type'])) {
+				$post_type = $params['post_type'];
+				$settings  = $this->get_pb_settings($post_type);
+
+				$widget_class    = 'Widget_Paperboot_Form_' . $this->mb_ucfirst($post_type);
 				
-				<?php include(plugin_dir_path(__FILE__) . 'templates/widget-form.php') ?>
-				
-				<?PHP return ob_get_clean();
+				if(class_exists($widget_class, false) && !empty($settings['fields'])) {
+					$widget_settings = new $widget_class();
+					extract(wp_parse_args((array) $widget_settings));
+					
+					ob_start()?> 
+					
+					<?php include(plugin_dir_path(__FILE__) . 'templates/widget-form.php') ?>
+					
+					<?PHP return ob_get_clean();
+				}
 			}
 		}
 		
@@ -1269,30 +1276,30 @@ width: 100%
 		*/
 		public function set_shortcode_show_posts($params)
 		{
-			$post_type = $params['post_type'];
-			$settings  = $this->get_pb_settings($post_type);
-			
-			// Get widget settings
-			$widget_class    = 'Widget_Paperboot_Form_' . $post_type;
-			$widget_instance = new $widget_class();
-			$widget_settings = end(array_values($widget_instance->get_settings()));
-			
-			extract(wp_parse_args((array) $widget_settings));
-			
-			$posts = get_posts(array(
-				'post_type'   => $post_type,
-				'order'       => 'ASC',
-				'orderby'     => 'post_date',
-				'post_status' => 'publish',
-				'show_count'  => 1
-			));
-			
-			if($display_on == 'shortcode') {
-				ob_start()?> 
+			if(!empty($params['post_type'])) {
+				$post_type = $params['post_type'];
+				$settings  = $this->get_pb_settings($post_type);
+
+				$widget_class    = 'Widget_Paperboot_Form_' . $post_type;
 				
-				<?php include(plugin_dir_path(__FILE__) . 'templates/widget-posts.php') ?>
-				
-				<?PHP return ob_get_clean();
+				if(class_exists($widget_class, false) && !empty($settings['fields'])) {
+					$widget_settings = new $widget_class();
+					extract(wp_parse_args((array) $widget_settings));
+					
+					$posts = get_posts(array(
+						'post_type'   => $post_type,
+						'order'       => 'ASC',
+						'orderby'     => 'post_date',
+						'post_status' => 'publish',
+						'show_count'  => 1
+					));
+					
+					ob_start()?> 
+					
+					<?php include(plugin_dir_path(__FILE__) . 'templates/widget-posts.php') ?>
+					
+					<?PHP return ob_get_clean();
+				}
 			}
 		}
 		

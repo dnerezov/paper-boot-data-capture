@@ -22,35 +22,35 @@ class #Widget_Paperboot_Form# extends WP_Widget
 	*
 	* @param string
 	*/
-	private $display_on   = 'widget';
+	public $display_on   = 'widget';
 	
 	/*
 	* Display if triggered by widget or shortcode
 	*
 	* @param string
 	*/
-	private $post_title_field = null;
+	public $post_title_field = null;
 	
 	/*
 	* Widget front panel title.
 	*
 	* @param string
 	*/
-	private $title        = '#widget_name#';
+	public $title        = '#widget_name#';
 	
 	/*
 	* Store user access condition.
 	*
 	* @param string
 	*/
-	private $is_authorized = true;
+	public $is_authorized = false;
 	
 	/*
 	* Store email settings.
 	*
 	* @param array
 	*/
-	private $email = array(
+	public $email = array(
 		'notification' => array(
 			'send'    => 'on',
 			'to'      => '#widget_to#',
@@ -73,28 +73,28 @@ class #Widget_Paperboot_Form# extends WP_Widget
 	*
 	* @param string
 	*/
-	private $show_form    = true;
+	public $show_form    = true;
 	
 	/*
 	* Store record listing visibility condition.
 	*
 	* @param string
 	*/
-	private $show_listing = true;
+	public $show_listing = true;
 	
 	/*
 	* Store form visibility condition.
 	*
 	* @param string
 	*/
-	private $show_captcha = true;
+	public $show_captcha = true;
 	
 	/*
 	* Submit button label.
 	*
 	* @param string
 	*/
-	private $submit_label = 'Send';
+	public $submit_label = 'Send';
 	
 	/*
 	* Submit event.
@@ -102,14 +102,14 @@ class #Widget_Paperboot_Form# extends WP_Widget
 	*
 	* @param string
 	*/
-	private $submit_event;
+	public $submit_event;
 	
 	/*
 	* Store form messages.
 	*
 	* @param array
 	*/
-	private $messages = array(
+	public $messages = array(
 		'success'      => 'Thank you, the form has been submitted',
 		'fail'         => 'Could not be sent. We apologise for the inconvenience, please resubmit later.',
 		'blank'        => 'Field is required',
