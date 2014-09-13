@@ -85,7 +85,7 @@ var Paperboot =
 		*/
 		jQuery('form.paper-boot-form .captcha-reload').click(function(e) {
 			Paperboot.params['formId'] = 'form#' + jQuery(this).parents('form').attr('id');
-			jQuery(Paperboot.params.formId + ' #captcha-img').attr('src', 'http://wp.localhost/wp-content/plugins/paper-boot-form/templates/../lib/captcha/class-pb-captcha.php?' + Math.random());
+			jQuery(Paperboot.params.formId + ' #captcha-img').attr('src', jQuery('#captcha-img').attr('src') + '?' + Math.random());
 			jQuery(Paperboot.params.formId + ' #captcha').val('').focus();
 		});
 

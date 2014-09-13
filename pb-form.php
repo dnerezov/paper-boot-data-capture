@@ -52,7 +52,7 @@ if (!class_exists('Paper_Boot_Form'))
 		* 
 		* @param int
 		*/
-		private $admin_page_title = 'Paper Boot Form Manager';
+		private $admin_page_title = 'Data Capture Posts';
 		
 		/*
 		* The part of the page where the edit screen section should be shown.
@@ -171,8 +171,8 @@ if (!class_exists('Paper_Boot_Form'))
 						)
 					)
 				),
-				'label'             => 'Admin Meta Box Context',
-				'description'       => 'The part of the page where the edit screen section should be shown',
+				'label'             => 'Admin Meta Box Position',
+				'description'       => 'Section of the page where edit meta fields form appears.',
 				'admin_edit'		=> true,
 				'admin_grid'		=> false
 			),
@@ -188,7 +188,7 @@ if (!class_exists('Paper_Boot_Form'))
 					)
 				),
 				'label'             => 'Admin Toolbar Visibility',
-				'description'       => 'Whether to display a toolbar (bulk actions and filters) on edit screen',
+				'description'       => 'Whether to display a toolbar (bulk actions and filters) on admin edit screen',
 				'admin_edit'		=> true,
 				'admin_grid'		=> true
 			),
@@ -204,7 +204,7 @@ if (!class_exists('Paper_Boot_Form'))
 					)
 				),
 				'label'             => 'Admin Create Posts',
-				'description'       => 'Enable or disable "Add New" post functionality',
+				'description'       => 'Enable or disable "Add New" post functionality within admin area',
 				'admin_edit'		=> true,
 				'admin_grid'		=> true
 			),
@@ -220,7 +220,7 @@ if (!class_exists('Paper_Boot_Form'))
 					)
 				),
 				'label'             => 'Admin Edit Posts',
-				'description'       => 'Toggle custom post edit post functionality',
+				'description'       => 'Enable or disable "Edit" post functionality within admin area',
 				'admin_edit'		=> true,
 				'admin_grid'		=> true
 			),
@@ -260,11 +260,11 @@ if (!class_exists('Paper_Boot_Form'))
 		* @param array
 		*/
 		public static $post_type_example = array(
-			'post_type'                     => 'announcements',
-			'post_title'                    => 'Announcements',
+			'post_type'                     => 'contact',
+			'post_title'                    => 'Contact',
 			'post_content'                  => null,
-			'admin_menu_label'              => 'Announcements',
-			'admin_page_title'              => 'Manage Announcements',
+			'admin_menu_label'              => 'Contacts',
+			'admin_page_title'              => 'Manage Contacts',
 			'admin_meta_box_context'        => 'normal',
 			'admin_grid_toolbar_visibility' => 'on',
 			'admin_create_posts'            => 'on',
@@ -277,7 +277,7 @@ if (!class_exists('Paper_Boot_Form'))
 													'type'  => 'text', 
 													'name'  => 'name', 
 													'id'    => 'name', 
-													'value' => '',
+													'value' => 'John Smith',
 													'class' => 'form-control', 
 													'placeholder'  => 'NAME*', 
 													'required'     => 'required', 
@@ -302,7 +302,7 @@ if (!class_exists('Paper_Boot_Form'))
 													'type'         => 'email', 
 													'name'         => 'email', 
 													'id'           => 'email',
-													'value'        => '',						
+													'value'        => 'john.smith@domain.com',						
 													'class'        => 'form-control', 
 													'placeholder'  => 'EMAIL*', 
 													'required'     => 'required', 
@@ -477,8 +477,6 @@ if (!class_exists('Paper_Boot_Form'))
 		*/
 		public function __construct(array $posts) 
 		{
-			//$post_type = $this->get_pb_post_type($post->ID);
-
 			$this->set_settings($posts)
 				->add_resources();
 
@@ -499,9 +497,7 @@ if (!class_exists('Paper_Boot_Form'))
 				add_filter('manage_edit-' . $settings['post_type'] . '_columns',          array(&$this, 'admin_add_grid_columns'));
 				add_filter('manage_edit-' . $settings['post_type'] . '_sortable_columns', array(&$this, 'admin_add_grid_columns_sort'));
 			}
-			//echo '<pre>';
-						///print_r($this);
-			//die;
+
 			add_shortcode('paperboot-form', array(&$this, 'set_shortcode_show_form'));
 			add_shortcode('paperboot-posts', array(&$this, 'set_shortcode_show_posts'));
 			
@@ -604,7 +600,7 @@ if (!class_exists('Paper_Boot_Form'))
 								'labels' => array(
 									'menu_name'          => __($settings['admin_menu_label'], 'text_domain'),
 									'name'               => __($settings['admin_page_title'], 'text_domain'),
-									'search_items'       => __('Search Contacts', 'text_domain'),
+									'search_items'       => __($settings['post_type'] == 'paperboot' ? 'Search' : 'Search ' . $settings['post_type'], 'text_domain'),
 									'not_found'          => __('No records found', 'text_domain'),
 									'not_found_in_trash' => __('No records found in Trash', 'text_domain')
 								),
@@ -613,7 +609,7 @@ if (!class_exists('Paper_Boot_Form'))
 								'capabilities' => array(
 									'create_posts' => $settings['admin_create_posts'] != 'on' ? false : true
 								),
-								'supports'     => $settings['post_type'] == 'paperboot' ? array('title') : false, //, 'thumbnail comments title''excerpt' 'author',
+								'supports'     => $settings['post_type'] == 'paperboot' ? array('title') : false,
 								'menu_position' => $settings['post_type'] == 'paperboot' ? 150 : 20,
 								'map_meta_cap' => $settings['admin_edit_posts'] != 'on' ? false : true,
 							)
@@ -998,10 +994,6 @@ if (!class_exists('Paper_Boot_Form'))
 					$fields = $_POST['paperboot_fields'];
 					
 					foreach($fields as $i => $field) {
-						if(empty($field['input']['params']['name'])) {
-							unset($fields[$i]);
-						}
-						
 						// Prevent saving parameter with empty value
 						foreach ($field['input']['params'] as $param_name => $param_value) {
 							if(empty($param_value)) {
