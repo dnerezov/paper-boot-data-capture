@@ -994,6 +994,10 @@ if (!class_exists('Paper_Boot_Form'))
 					$fields = $_POST['paperboot_fields'];
 					
 					foreach($fields as $i => $field) {
+						if(empty($field['input']['params']['name'])) {
+							unset($fields[$i]);
+						}
+						
 						// Prevent saving parameter with empty value
 						foreach ($field['input']['params'] as $param_name => $param_value) {
 							if(empty($param_value)) {
